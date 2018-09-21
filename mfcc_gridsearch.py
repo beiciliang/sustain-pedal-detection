@@ -22,7 +22,7 @@ from keras.backend.tensorflow_backend import set_session
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0" # the number of the GPU
 config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.5 # percentage to be used
+config.gpu_options.per_process_gpu_memory_fraction = 0.3 # percentage to be used
 set_session(tf.Session(config=config))
 
 from kapre.time_frequency import Melspectrogram
@@ -64,8 +64,7 @@ n_jobs = int(n_cpu * 0.8)
 print('There are {} cpu available, {} (80%) of them will be used for our jobs.'.format(n_cpu, n_jobs))
 
 gps = [{"C": [0.1, 2.0, 8.0, 32.0], "kernel": ['rbf'],
-        "gamma": [0.5 ** i for i in [3, 5, 7, 9, 11, 13]] + ['auto']},
-       {"C": [0.1, 2.0, 8.0, 32.0], "kernel": ['linear']}
+        "gamma": [0.5 ** i for i in [3, 5, 7, 9, 11, 13]] + ['auto']}
       ]
 classifier = SVC
 dataroots = [DIR_PEDAL_ONSET_NPY, DIR_PEDAL_SEGMENT_NPY]
