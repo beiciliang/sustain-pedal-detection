@@ -4,7 +4,7 @@ Companion codes for the submission:
 
 Beici Liang, György Fazekas, Mark Sandler. "Piano Sustain-Pedal Detection Using Convolutional Neural Networks".
 
-![Image of framework](framework.png){:height="50%" width="50%"}
+<img src="https://github.com/beiciliang/sustain-pedal-detection/blob/master/framework.png" width="250">
 
 ## Index
 
