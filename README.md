@@ -20,12 +20,10 @@ Beici Liang, György Fazekas, Mark Sandler. "Piano Sustain-Pedal Detection Using
 
 * `3. piece-wise detection.ipynb`: how to fuse the decision outputs from `Conv2D-onset` and `Conv2D-segment` so as to perform the detection on a piano piece.
 
-Trained models are saved in folder `./save-model`. Evaluation results for every piece in the testing set are saved in 'psegment-testresult_onset98_seg98.csv'.
+Trained models are saved in folder `./save-model`. Evaluation results for every piece in the testing set are saved in `psegment-testresult_onset98_seg98.csv`.
 
 Box plot of F1 score and bar plot of pedal-frame proportion ordered by composer's lifetime:
 ![Image of result](result-composer.png)
-
-- 
 
 ## Requirements
 
