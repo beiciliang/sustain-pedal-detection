@@ -1,9 +1,10 @@
 {
-  "dir_rendered": "./piano-e-competition/rendered-dataset",
-  "dir_pedal_metadata" : "./piano-e-competition/pedal-metadata",
-  "dir_pedal_onset" : "./piano-e-competition/pedal-dataset/pedal-onset-dataset",
-  "dir_pedal_segment": "./piano-e-competition/pedal-dataset/pedal-segment-dataset",
-  "dir_pedal_onset_npy" : "./piano-e-competition/pedal-dataset/pedal-onset-npydataset",
-  "dir_pedal_segment_npy": "./piano-e-competition/pedal-dataset/pedal-segment-npydataset",
+  "dir_rendered": "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/rendered-dataset",
+  "dir_pedal_metadata" : "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/pedal-metadata",
+  "dir_pedal_onset" : "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/pedal-dataset/pedal-onset-dataset",
+  "dir_pedal_segment": "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/pedal-dataset/pedal-segment-dataset",
+  "dir_pedal_onset_npy" : "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/pedal-dataset/pedal-onset-npydataset",
+  "dir_pedal_segment_npy": "/import/c4dm-05/bl301/sustain-pedal-detection/piano-e-competition/pedal-dataset/pedal-segment-npydataset",
   "dir_save_model": "./save-model"
+  "dir_real_data": "/import/c4dm-01/beicil/pedal-dataset/pedaldata-0527"
 }
