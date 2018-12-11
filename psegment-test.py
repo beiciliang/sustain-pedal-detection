@@ -35,61 +35,6 @@ from global_config import *
 reg_w = 1e-4
 batch_size = 1
 
-def model_multi_kernel_shape(n_out, input_shape, out_activation='softmax'):
-    """
-
-    Symbolic summary:
-    > c2' - p2 - c2 - p2 - c2 - p2 - c2 - p3 - d1
-    where c2' -> multiple kernel shapes
-
-    Parameters
-    ----------
-        n_out: integer, number of output nodes
-        input_shape: tuple, an input shape, which doesn't include batch-axis.
-        out_activation: activation function on the output
-    """
-    audio_input = Input(shape=input_shape)
-
-    x = Melspectrogram(n_dft=N_FFT, n_hop=HOP_LENGTH, sr=SR, n_mels=128, power_melgram=2.0, return_decibel_melgram=True)(audio_input)
-    x = BatchNormalization(axis=channel_axis)(x)
-
-    x1 = Conv2D(7, (20, 3), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-    x2 = Conv2D(7, (3, 3), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-    x3 = Conv2D(7, (3, 20), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-
-    x = Concatenate(axis=channel_axis)([x1, x2, x3])
-
-    x = BatchNormalization(axis=channel_axis)(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Dropout(0.25)(x)
-    
-    x = Conv2D(21, (3, 3), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-    x = BatchNormalization(axis=channel_axis)(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Dropout(0.25)(x)
-
-    x = Conv2D(21, (3, 3), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-    x = BatchNormalization(axis=channel_axis)(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Dropout(0.25)(x)
-
-    x = Conv2D(21, (3, 3), padding='same', kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-    x = BatchNormalization(axis=channel_axis)(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((4, 4), padding='same')(x)
-    x = Dropout(0.25)(x)
-
-    x = GlobalAveragePooling2D()(x)
-
-    out = Dense(n_out, activation=out_activation, kernel_regularizer=keras.regularizers.l2(reg_w))(x)
-
-    model = Model(audio_input, out)
-
-    return model
-
 def data_gen(audio_data, n_detect, nsp_excerpt, type_excerpt, hop_length=HOP_LENGTH):
     """Data generator.
     excerpt: data of one audio file.
@@ -167,19 +112,25 @@ def main(args):
     filenames = tracks['filename']
     pedal_offset_gt_tracks = tracks['pedal_offset']
     pedal_onset_gt_tracks = tracks['pedal_onset']
+    
+    dataset_type = 'segment'
+    input_type = 'melspectrogram'
+    model_name = 'cnnkernel-{}'.format(input_type)
+    exp_name = 'sub-{}_{}_multift'.format(dataset_type, model_name)
+    segment_model = keras.models.load_model(os.path.join(DIR_SAVE_MODEL,"{}_best_model.h5".format(exp_name)),
+                                            custom_objects={'Melspectrogram':Melspectrogram})
+    segment_model.load_weights(os.path.join(DIR_SAVE_MODEL,"{}_best_weights.h5".format(exp_name)))
 
-    # get model
-    model_name = 'multi_kernel'
-    segment_exp_name = 'segment_{}'.format(model_name)
-    onset_exp_name = 'onset_{}'.format(model_name)
-
-    onset_model = model_multi_kernel_shape(n_out=2,input_shape=ONSET_INPUT_SHAPE)
-    onset_model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
-    segment_model = model_multi_kernel_shape(n_out=2,input_shape=SEGMENT_INPUT_SHAPE)
-    segment_model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
-    # load weights
-    onset_model.load_weights(os.path.join(DIR_SAVE_MODEL,"{}_best_weights.h5".format(onset_exp_name)))
-    segment_model.load_weights(os.path.join(DIR_SAVE_MODEL,"{}_best_weights.h5".format(segment_exp_name)))
+#     # get model
+#     model_name = 'multi_kernel'
+#     segment_exp_name = 'segment_{}'.format(model_name)
+#     onset_exp_name = 'onset_{}'.format(model_name)
+#     onset_model = keras.models.load_model(os.path.join(DIR_SAVE_MODEL,"{}_best_model.h5".format(onset_exp_name)),
+#                                           custom_objects={'Melspectrogram':Melspectrogram})
+#     onset_model.load_weights(os.path.join(DIR_SAVE_MODEL,"{}_best_weights.h5".format(onset_exp_name)))
+#     segment_model = keras.models.load_model(os.path.join(DIR_SAVE_MODEL,"{}_best_model.h5".format(segment_exp_name)),
+#                                             custom_objects={'Melspectrogram':Melspectrogram})
+#     segment_model.load_weights(os.path.join(DIR_SAVE_MODEL,"{}_best_weights.h5".format(segment_exp_name)))    
 
     # do detection
     filename_records = []
@@ -237,15 +188,21 @@ def main(args):
 
         paudio, sr = librosa.load(paudio_path, sr=SR) 
         print("{}...".format(filename))
-        len_onset_shape = int(SR * (TRIM_SECOND_BEFORE + TRIM_SECOND_AFTER))
-        onsethop_length = HOP_LENGTH
-        onsethop_duration = onsethop_length/SR
-        n_ponset = int(np.ceil((len(paudio)-len_onset_shape)/onsethop_length))
-        gen_ponset = data_gen(paudio, n_ponset, len_onset_shape, 'onset', hop_length=onsethop_length)
-        pred_ponset = onset_model.predict_generator(gen_ponset, n_ponset // batch_size)
-        pred_ponset_filter = medfilt(pred_ponset[:,1],15)
-        frmtime_ponset = np.arange(n_ponset)*onsethop_duration+TRIM_SECOND_BEFORE
+        
+        if onset_threshold>0:
+            len_onset_shape = int(SR * (TRIM_SECOND_BEFORE + TRIM_SECOND_AFTER))
+            onsethop_length = HOP_LENGTH
+            onsethop_duration = onsethop_length/SR
+            n_ponset = int(np.ceil((len(paudio)-len_onset_shape)/onsethop_length))
+            gen_ponset = data_gen(paudio, n_ponset, len_onset_shape, 'onset', hop_length=onsethop_length)
+            pred_ponset = onset_model.predict_generator(gen_ponset, n_ponset // batch_size)
+            pred_ponset_filter = medfilt(pred_ponset[:,1],15)
+            frmtime_ponset = np.arange(n_ponset)*onsethop_duration+TRIM_SECOND_BEFORE
 
+            pred_ponset_todetect = np.copy(pred_ponset_filter)
+            pred_ponset_todetect[pred_ponset_todetect<onset_threshold]=0
+            pred_ponset_todetect[pred_ponset_todetect>=onset_threshold]=1
+        
         len_segment_shape = int(SR * MIN_SRC)
         seghop_length = HOP_LENGTH*10
         seghop_duration = seghop_length/SR
@@ -262,10 +219,6 @@ def main(args):
             else:
                 break        
         pred_psegment_filter[:n_segment_tozero] = 0
-
-        pred_ponset_todetect = np.copy(pred_ponset_filter)
-        pred_ponset_todetect[pred_ponset_todetect<onset_threshold]=0
-        pred_ponset_todetect[pred_ponset_todetect>=onset_threshold]=1
 
         pred_psegment_todetect = np.copy(pred_psegment_filter)
         pred_psegment_todetect[pred_psegment_todetect<segment_threshold]=0
@@ -300,15 +253,20 @@ def main(args):
                 print("  no detection!")  
 
             else:
-                # decide the boundary times in seconds, combining the effect of pedal onset
-                onseg_times = []
-                offseg_times = []
-                for idx, onseg_idx in enumerate(onseg_idxs):
-                    onponset_idx = onseg_idx*10-5
-                    if any(pred_ponset_todetect[onponset_idx-5:onponset_idx+5]):
-                        offseg_idx = offseg_idxs[idx]
-                        offseg_times.append(frmtime_psegment[offseg_idx])
-                        onseg_times.append(frmtime_psegment[onseg_idx])
+                if onset_threshold>0:
+                    # decide the boundary times in seconds, combining the effect of pedal onset
+                    onseg_times = []
+                    offseg_times = []
+                    for idx, onseg_idx in enumerate(onseg_idxs):
+                        onponset_idx = onseg_idx*10-5
+                        if any(pred_ponset_todetect[onponset_idx-5:onponset_idx+5]):
+                            offseg_idx = offseg_idxs[idx]
+                            offseg_times.append(frmtime_psegment[offseg_idx])
+                            onseg_times.append(frmtime_psegment[onseg_idx])
+                else:
+                    onseg_times = frmtime_psegment[onseg_idxs] 
+                    offseg_times = frmtime_psegment[offseg_idxs]
+                    
                 segintervals_est = np.stack((np.asarray(onseg_times),np.asarray(offseg_times)), axis=-1)
 
                 # set the ground truth and estimation results frame by frame
