@@ -10,7 +10,7 @@ Beici Liang, György Fazekas, Mark Sandler. "Piano Sustain-Pedal Detection Using
 
 * `0. pedal midi info.ipynb`: understand MIDI files and how the ground-truth annotations are extracted
 
-* `1. dataset preparation.ipynb`: how to build the dataset and generate excerpts
+* `1.1 dataset preparation.ipynb`: how to build the dataset and generate excerpts
 
 * `2.1 pedal onset classification.ipynb`: how to train `Conv2D-onset`
 
