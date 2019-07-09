@@ -4,8 +4,6 @@ Companion codes for the submissions:
 
 Beici Liang, György Fazekas, Mark Sandler. "Piano Sustain-Pedal Detection Using Convolutional Neural Networks" published in ICASSP 2019 and "Transfer Learning for Piano Sustain-Pedal Detection" published in IJCNN 2019.
 
-<img src="https://github.com/beiciliang/sustain-pedal-detection/blob/master/framework.png" width="500">
-
 ## Index
 
 * `0. pedal midi info.ipynb`: understand MIDI files and how the ground-truth annotations are extracted
