@@ -24,9 +24,9 @@ Beici Liang, György Fazekas, Mark Sandler. "Piano Sustain-Pedal Detection Using
 
 * `4. effect of cnn settings.ipynb`: how different configurations affect the model performance. After this, best model for detecting pedal onset and pedalled segment are saved in `./save-model/sub-onset_cnnkernel-melspectrogram_l4c13` and `./save-model/sub-segment_cnnkernel-melspectrogram_multift`, respectively.
 
-* `5.1 test on chopin audio data (retrain last layer).ipynb`: how to fine-tune the model trained using synthesised data to be used in the detection on real acoustic recordings.
+* `5.1 test on chopin audio data (retrain last layer).ipynb`: how to fine-tune the model trained using synthesised data to be used in the detection on [real acoustic recordings](http://doi.org/10.5281/zenodo.3243529).
 
-* `5.2 test on chopin audio data.ipynb`: how to do the detection based on our proposed transfer learning strategy.
+* `5.2 test on chopin audio data.ipynb`: how to do the detection even better using our proposed transfer learning method.
 
 * `visualise layers.ipynb`: visualise what have been learned in the neural networks using deconvolution.
 
